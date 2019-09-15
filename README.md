@@ -20,3 +20,13 @@ git clone https://github.com/Yi-Hack-Tools/YI-Hack-B2
 chmod -R +x YI-Hack-B2
 ./YI-Hack-B2/b2uploader-yi-hack.sh
 ```
+You must edit the script in order to set some variables:
+```
+CAMERAIP=''  # the ip address of your camera.
+FTPPORT=21   # 21 by default
+USER='root'  # root by default
+PASSWD=''    # the password of the camera
+BUCKET=''    # your bucket at B2
+FOLDER=''    # your folder in your bucket at B2
+
+```
