@@ -17,9 +17,9 @@ case "$(curl -s --max-time 2 -I http://backblaze.com | sed 's/^[^ ]*  *\([0-9]\)
 esac
 
 if [ -d "/tmp/$FOLDER" ]; then
-  echo -e "\e[31mb2uploader for $FOLDER seems to be alerady running. Exiting.\e[0m" && exit
+    echo -e "\e[31mb2uploader for $FOLDER seems to be alerady running. Exiting.\e[0m" && exit
 else
-  echo -e "\e[32mReady to run.\e[0m" && mkdir /tmp/$FOLDER
+    echo -e "\e[32mReady to run.\e[0m" && mkdir /tmp/$FOLDER
 fi
 
 __cleanup ()
@@ -33,41 +33,41 @@ cd /tmp/$FOLDER
 
 echo -e "Listing files in the camera's sd card...\n"
 mapfile -t CAMFILES < <(curl -l ftp://$CAMERAIP:$FTPPORT//tmp/sd/record/record --user $USER:$PASSWD)
+
 echo -e "Listing files in the bucket... This may take a while\n"
 mapfile -t REMOTE < <(b2 ls $BUCKET $FOLDER)
-mapfile -t REMOTE2 < <(basename -a "${REMOTE[@]%.*}")
 
-REMOTECUT=("${REMOTE2[@]:1}") 
+mapfile -t REMOTECUT < <(basename -a "${REMOTE[@]%.*}")
 
 LASTREMOTE=${REMOTECUT[-1]}
+
 echo -e "\e[1mFound' ${#CAMFILES[@]} 'directories in the camera's sd card:  \n"
 printf '%s\n' "${CAMFILES[@]}"
+
 echo -e "\e[0m=====================================================\n"
 
 if [[ ${#REMOTE[@]} -eq 1 ]];
-then
-LASTCUTCONV='1'
+    then
+    LASTCUTCONV='1'
 else
-LASTCUT=$(echo $LASTREMOTE | sed 's/[A-Za-z]*//g')
-LASTCUTCONV=$(date -d $LASTCUT +%s)
+    LASTCUT=$(echo ${LASTREMOTE:0:4}'-'${LASTREMOTE:5:2}'-'${LASTREMOTE:8:2}' '${LASTREMOTE:11:2})
+    LASTCUTCONV=$(date -d "$LASTCUT" +%s)
 fi
 
 for DIR in "${CAMFILES[@]}"
 do
-	
-DIRCUT=$(echo $DIR | sed 's/[A-Za-z]*//g')
 
-DIRCUTCONV=$(date -d $DIRCUT +%s)
+    DIRCUT=$(echo ${DIR:0:4}'-'${DIR:5:2}'-'${DIR:8:2}' '${DIR:11:2})
+    DIRCUTCONV=$(date -d "$DIRCUT" +%s)
 
-if [ $DIRCUTCONV -gt $LASTCUTCONV ];
-then
-
-    wget -r -nH --cut-dirs=4 --no-parent --reject="tmp.*" --user=$USER --password=$PASSWD ftp://$CAMERAIP:$FTPPORT//tmp/sd/record/$DIR/*
+    if [ $DIRCUTCONV -gt $LASTCUTCONV ];
+    then
+        wget -r -nH --cut-dirs=4 --no-parent --reject="tmp.*" --user=$USER --password=$PASSWD ftp://$CAMERAIP:$FTPPORT//tmp/sd/record/$DIR/*
 	mapfile -t MEDIA < <(ls $DIR/)
-		for FILE in "${MEDIA[@]}"
-		do
-			b2 upload-file $BUCKET $DIR/$FILE $FOLDER/$DIR/$FILE
-		done
+            for FILE in "${MEDIA[@]}"
+            do
+               b2 upload-file $BUCKET $DIR/$FILE $FOLDER/$DIR/$FILE
+            done
 	echo -e "\e[0m====================================================="
 	echo -e "\e[1mremoving" $DIR
 	echo -e "\e[0m"
