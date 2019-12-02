@@ -28,23 +28,22 @@ __cleanup ()
     rm -r /tmp/$FOLDER
 }
 trap __cleanup EXIT
-
+DATENOW=$(date -d "$(date "+%Y-%m-%d %H")" +%s)
 cd /tmp/$FOLDER
 
 echo -e "Listing files in the camera's sd card...\n"
 mapfile -t CAMFILES < <(curl -l ftp://$CAMERAIP:$FTPPORT//tmp/sd/record/record --user $USER:$PASSWD)
-
 echo -e "Listing files in the bucket... This may take a while\n"
 mapfile -t REMOTE < <(b2 ls $BUCKET $FOLDER)
-
 mapfile -t REMOTECUT < <(basename -a "${REMOTE[@]%.*}")
 
 LASTREMOTE=${REMOTECUT[-1]}
 
 echo -e "\e[1mFound' ${#CAMFILES[@]} 'directories in the camera's sd card:  \n"
 printf '%s\n' "${CAMFILES[@]}"
-
 echo -e "\e[0m=====================================================\n"
+
+
 
 if [[ ${#REMOTE[@]} -eq 1 ]];
     then
@@ -57,8 +56,16 @@ fi
 for DIR in "${CAMFILES[@]}"
 do
 
-    DIRCUT=$(echo ${DIR:0:4}'-'${DIR:5:2}'-'${DIR:8:2}' '${DIR:11:2})
-    DIRCUTCONV=$(date -d "$DIRCUT" +%s)
+DIRCUTCONV=$(date -d "$(echo ${DIR:0:4}'-'${DIR:5:2}'-'${DIR:8:2}' '${DIR:11:2})" +%s)
+
+
+if [ $DIRCUTCONV -eq $DATENOW ];
+then
+echo -e "Folder $DIR will not be uploaded because it can get new media. Exiting."
+exit
+fi
+
+
 
     if [ $DIRCUTCONV -gt $LASTCUTCONV ];
     then
@@ -78,3 +85,4 @@ fi
 done
 
 rm -r /tmp/$FOLDER
+echo -e "\nDone at: $(date)"
