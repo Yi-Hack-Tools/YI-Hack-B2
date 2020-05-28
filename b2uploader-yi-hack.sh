@@ -74,7 +74,7 @@ do
     wget -r -nH --cut-dirs=4 --no-parent --reject="tmp.*" --user=$USER --password=$PASSWD ftp://$CAMERAIP:$FTPPORT//tmp/sd/record/$DIR/*
     for FILE in $DIR/*.mp4
     do
-      b2 upload-file $BUCKET $FILE $FOLDER/$DIR/$FILE
+      b2 upload-file $BUCKET $FILE $FOLDER/$FILE
     done
     echo -e "\e[0m====================================================="
     echo -e "\e[1mremoving" $DIR
